@@ -1,0 +1,11 @@
+{
+  "db": {
+    "url": "http://localhost:8529",
+    "database": "search-example",
+    "userName": "root",
+    "password": "admin"
+  },
+  "crawl": {
+    "revisitInMinutes": 1440
+  }
+}
