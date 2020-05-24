@@ -5,12 +5,21 @@ import { getDb, getCollection } from './arango-db.js';
 const aql = arangojs.aql;
 
 export class PageDao {
+  _getDepth(url) {
+    url = new URL(url);
+    let domainLevel = url.hostname.split('.').length;
+    domainLevel = Math.max(domainLevel, 3) - 3;
+    const pathSegments = url.pathname.split('/').filter(x => x).length;
+    return domainLevel + pathSegments;
+  }
   async create(url) {
+    const depth = this._getDepth(url);
+
     let db = getDb();
 
     const query = aql`
       upsert { url: ${url} }
-      insert { url: ${url} }
+      insert { url: ${url}, depth: ${depth} }
       update {}
       in pages
       return { id: NEW._id }  
@@ -32,7 +41,8 @@ export class PageDao {
     const query = aql`
       for p in pages
       filter p.lastVisit == null || p.nextVisit > DATE_NOW()
-      limit 1000
+      sort p.pathLength, p.lastVisit, p.nextVisit
+      limit 20
       return { id: p._id, url: p.url }
     `;
 

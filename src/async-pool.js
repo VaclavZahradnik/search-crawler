@@ -14,9 +14,19 @@ export class AsyncPool {
   }
 
   async waitAny() {
-    const { index, data } = await Promise.race(this._pool);
+    const pool = this._pool.filter(x => x);
+    if (!pool.length) return;
+    const { data, index } = await Promise.race(pool);
     this._pool[index] = null;
     return data;
+  }
+
+  async waitAll() {
+    const pool = this._pool.filter(x => x);
+    if (!pool.length) return;
+    const data = await Promise.all(pool);
+    data.forEach(x => (this._pool[x] = null));
+    return data.map(x => x.data);
   }
 }
 

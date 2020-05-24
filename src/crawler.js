@@ -3,6 +3,7 @@ import { environment } from './env.js';
 
 import { Browser } from './browser.js';
 import { AsyncPool } from './async-pool.js';
+import { countryToLanguageMap } from './country-to-language.js';
 
 export class Crawler {
   async start() {
@@ -32,7 +33,9 @@ export class Crawler {
       if (!pages.length) console.log('no pages to crawl...');
       else await this.processPages(pages);
 
-      setTimeout(() => this.crawl(onError), 1000);
+      console.log('10s pause...');
+
+      setTimeout(() => this.crawl(onError), 10000);
     } catch (err) {
       onError(err);
     }
@@ -49,8 +52,10 @@ export class Crawler {
     // eslint-disable-next-line no-constant-condition
     while (true) {
       await pool.waitAny();
-      if (i < pages.length) break;
-      pool.enqueue(this.processPage(pages[i++]));
+      if (i == pages.length) {
+        pool.waitAll();
+        break;
+      } else pool.enqueue(this.processPage(pages[i++]));
     }
   }
 
@@ -58,6 +63,12 @@ export class Crawler {
     let patch;
     try {
       patch = await this._browser.visit(page.url);
+
+      if (!patch.lang) {
+        const tld = new URL(page.url).hostname.split('.').pop();
+        const lang = countryToLanguageMap[tld];
+        if (lang) patch.lang = lang;
+      }
     } catch (err) {
       patch = { err: String(err) };
     }
