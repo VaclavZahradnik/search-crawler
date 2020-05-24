@@ -41,7 +41,7 @@ export class PageDao {
     const query = aql`
       for p in pages
       filter p.lastVisit == null || p.nextVisit > DATE_NOW()
-      sort p.pathLength, p.lastVisit, p.nextVisit
+      sort p.depth, p.lastVisit, p.nextVisit
       limit 20
       return { id: p._id, url: p.url }
     `;
