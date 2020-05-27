@@ -4,16 +4,17 @@ import { getDb, getCollection } from './arango-db.js';
 
 const aql = arangojs.aql;
 
+function getDepth(url) {
+  url = new URL(url);
+  let domainLevel = url.hostname.split('.').length;
+  domainLevel = Math.max(domainLevel, 3) - 3;
+  const pathSegments = url.pathname.split('/').filter(x => x).length;
+  return domainLevel + pathSegments;
+}
+
 export class PageDao {
-  _getDepth(url) {
-    url = new URL(url);
-    let domainLevel = url.hostname.split('.').length;
-    domainLevel = Math.max(domainLevel, 3) - 3;
-    const pathSegments = url.pathname.split('/').filter(x => x).length;
-    return domainLevel + pathSegments;
-  }
   async create(url) {
-    const depth = this._getDepth(url);
+    const depth = getDepth(url);
 
     let db = getDb();
 
